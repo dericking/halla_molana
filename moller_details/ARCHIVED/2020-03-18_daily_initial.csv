@@ -1,0 +1,8 @@
+2020-03-18,19288,19290,,junk,,junk,
+2020-03-18,19291,19292,,test_general,,junk,CREX
+2020-03-18,19293,19293,,bleed_through,,Hall D,CREX
+2020-03-18,19294,19304,,dipole_scan,,dipole scan,CREX
+2020-03-18,19305,19309,0.754210,beam_pol,3042.0,HWP-OUT,CREX
+2020-03-18,19310,19399,,junk,,crate died,CREX
+2020-03-18,19320,19320,,pedestal_run,,pedestal check,CREX
+2020-03-18,19321,19332,,led_run,,performed led run,CREX

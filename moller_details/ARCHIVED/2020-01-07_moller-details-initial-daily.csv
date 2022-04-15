@@ -1,0 +1,17 @@
+2020-01-07,18910,18912,,test_general,,test_general,CREX
+2020-01-07,18913,18913,,bleed_through,,HALL B ON,CREX
+2020-01-07,18914,18918,,scan_rates,3005.0,Dipole Rate Scan,CREX
+2020-01-07,18919,18919,,junk,,junk,CREX
+2020-01-07,18920,18925,,scan_rates,3005.1,Dipole Rate Scan,CREX
+2020-01-07,18926,18939,,scan_rates,3006.0,Q1 Rate Scan,CREX
+2020-01-07,18940,18944,0.75421,spin_dance,3007.0,Spin Dance Wein -26.4 deg,CREX
+2020-01-07,18945,18950,0.75421,spin_dance,3008.0,Spin Dance Wein +5.0 deg,CREX
+2020-01-07,18951,18955,0.75421,spin_dance,3009.0,Spin Dance Wein -55.0 deg,CREX
+2020-01-07,18956,18961,0.75421,spin_dance,3010.0,Spin Dance Wein -40.0 deg,CREX
+2020-01-07,18962,18966,0.75421,spin_dance,3011.0,Spin Dance Wein -10.0 deg,CREX
+2020-01-07,18967,18972,0.75421,beam_pol,3012.0,Pol Meas New Wein Angle -29.6 deg HWP IN,CREX
+2020-01-07,18973,18973,,junk,,junk,CREX
+2020-01-07,18974,18978,0.75241,beam_pol,3012.0,Pol Meas New Wein Angle -29.6 deg HWP OUT,CREX
+2020-01-07,18979,18979,,junk,,junk,CREX
+2020-01-07,18980,18980,0.75241,beam_pol,3012.1,Pol Meas New Wein Angle -29.6 deg HWP OUT,CREX
+2020-01-07,18981,18983,0.75421,bleed_through,3013.0,Cu Meas,CREX
