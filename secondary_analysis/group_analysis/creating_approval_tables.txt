@@ -1,0 +1,20 @@
+CREATE TABLE pcrex_run_quality_approvals ( 
+  id_runqual INT,
+  runqual_user1 INT,
+  runqual_value1 INT,
+  runqual_user2 INT,
+  runqual_value2 INT,
+  runqual_objection INT,
+  PRIMARY KEY (id_runqual),
+  FOREIGN KEY (runqual_user1)     REFERENCES pcrex_run_quality_approvers (id_user),
+  FOREIGN KEY (runqual_user2)     REFERENCES pcrex_run_quality_approvers (id_user),
+  FOREIGN KEY (runqual_objection) REFERENCES pcrex_run_quality_approvers (id_user),
+  FOREIGN KEY (runqual_value1) REFERENCES pcrex_run_quality_types (id_dataqual),
+  FOREIGN KEY (runqual_value2) REFERENCES pcrex_run_quality_types (id_dataqual)
+);
+
+CREATE TABLE pcrex_run_quality_types ( 
+  id_dataqual INT,
+  dataqual_desc VARCHAR(16),
+  PRIMARY KEY (id_dataqual)
+);

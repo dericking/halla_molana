@@ -1,0 +1,28 @@
+To re-populate the wein flip values in case of loss just execute the following commands (in order) to fix the table:
+Note: -1 = FLIP-LEFT and +1 = FLIP-RIGHT
+
+PREX:
+UPDATE pcrex_groups SET group_wein = +1 WHERE group_date > '2019-03-19';
+UPDATE pcrex_groups SET group_wein = -1 WHERE group_date > '2019-07-24';
+UPDATE pcrex_groups SET group_wein = +1 WHERE group_date > '2019-08-10';
+UPDATE pcrex_groups SET group_wein = -1 WHERE group_date > '2019-08-21';
+
+
+
+==> From CREX Analysis
+ Configuration States Summary
+ Slugs 100-115 = Wien Right, Target 1
+ Slugs 116-137 = Wien Right, Target 2
+ Slugs 138-150 = Wien Left, Injector Laser Spot 1
+ Slugs 151---> = Wien Left, Injector Laser Spot 2
+ 
+ SLUG 100 BEGINS WITH RUN 5408 ==> WHICH HAS DATE: 2019-12-12 22:43:30
+ SLUG 138 BEGINS WITH RUN 6514 ==> WHICH HAS DATE: 2020-02-19 10:28:37
+ 
+ WHEN WE RETURNED IN JULY WE WERE IN FLIP-RIGHT
+
+
+CREX:
+UPDATE pcrex_groups SET group_wein = +1 WHERE group_date > '2019-12-11';
+UPDATE pcrex_groups SET group_wein = -1 WHERE group_date > '2020-02-18';
+UPDATE pcrex_groups SET group_wein = +1 WHERE group_date > '2020-07-20';

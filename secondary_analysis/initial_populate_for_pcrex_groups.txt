@@ -1,0 +1,3 @@
+THIS COMMAND WILL POPULATE THE TABLE FOR PCREX GROUPS with types, hwp state, date, etc.... Theres an additional list of scripts that will fill for wien flips.
+
+INSERT IGNORE INTO pcrex_groups(id_group, group_type, group_hwp, group_date) SELECT DISTINCT FLOOR(rundet_pcrex_group), rundet_type, set_ihwp, rundet_day FROM moller_run_details, moller_settings WHERE id_rundet = id_set_run AND rundet_type IS NOT NULL AND rundet_pcrex_group IS NOT NULL ORDER BY FLOOR(rundet_pcrex_group) ASC;
