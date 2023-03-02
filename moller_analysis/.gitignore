@@ -1,0 +1,12 @@
+# IGNORE THE FOLLOWING FILES FOR NOW
+*.root
+*.pdf
+*.out
+*.txt
+analysis/
+analysis*/
+moller_data_temp/
+
+*.pcm
+*.d
+*.so

@@ -48,7 +48,9 @@ void molana_bleedthrough(string FILE, Double_t FREQ, Bool_t BEAM ){
   const Double_t gate       = 1./freq-tsettle;//ACTIVE GATE WHILE TAKING DATA
   const Double_t anpow      = 0.000;
   const Double_t ptar       = 0.000;
-
+  
+  Double_t coincThreshold   = 10;
+  Double_t coinPerBcmStdevPM = 8.;
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //CHECK FOR THE EXISTENCE OF ENVIRONMENTAL VARIABLES
@@ -282,7 +284,7 @@ void molana_bleedthrough(string FILE, Double_t FREQ, Bool_t BEAM ){
   // HISTOGRAMS :: KEEP NHIST UPDATED FOR PRINTING AT END.
   // WHEN YOU ADD HISTOGRAM INCREMEMNT 'nhist1' AND ADD HISTOGRAM TO ARRAY
   // FOR TH2D DO THE SAME THING
-  const Int_t nhist1 = 8;
+  const Int_t nhist1 = 9;
   TH1F * H[nhist1];
   Int_t    i_incrbin = 10000;
   Int_t    i_incrmin = 0;
@@ -296,6 +298,7 @@ void molana_bleedthrough(string FILE, Double_t FREQ, Bool_t BEAM ){
   H[ 5] = new TH1F("hCoin_bleed_beamtrip", Form("Coin Bleed on Beam Off : Run %i",RUNN),  i_incrbin,  i_incrmin-binoffset, i_incrmax-binoffset);
   H[ 6] = new TH1F("hAccd_bleed_beamtrip", Form("Accid Bleed on Beam Off : Run %i",RUNN),  i_incrbin,  i_incrmin-binoffset, i_incrmax-binoffset);
   H[ 7] = new TH1F("hClck_bleed_beamtrip", Form("Clock Increments Beam Off : Run %i",RUNN),  i_incrbin,  i_incrmin-binoffset, i_incrmax-binoffset);
+  H[ 8] = new TH1F("hCoinToBcmRatio", Form("Coin-to-BCM Ratio for Beam On : Run %i",RUNN), 1000 , 0. , 100. );
 
   const Long64_t nentries = T->GetEntries();
   Long64_t nbytes = 0, nb = 0;
@@ -313,8 +316,9 @@ void molana_bleedthrough(string FILE, Double_t FREQ, Bool_t BEAM ){
       if( (abs(coinc1-coinc2) > 2) ){                    //DO COINCIENCE SCALER COUNTS MATCH?
         continue;
       }
-      if( coinc1 > 5 ){
+      if( coinc1 > coincThreshold ){
         H[0]->Fill(bcm);
+        H[8]->Fill( (Float_t)coinc1 / (Float_t)bcm );
       }
     }
     if(H[0]->GetEntries() == 0){
@@ -330,20 +334,39 @@ void molana_bleedthrough(string FILE, Double_t FREQ, Bool_t BEAM ){
     Double_t low_bcm_threshold_double = bcm_mean_beamon - 5 * bcm_stdev_beamon;
     Int_t    low_bcm_threshold = (Int_t)(low_bcm_threshold_double);
     cout << "molana_bleedthrough.C() ==> Value of low_bcm_threshhold: " << low_bcm_threshold << endl;
+    Float_t  coincidencePerBCMcount = H[8]->GetMean();
+    Float_t  coincidenceStdDev = H[8]->GetStdDev();
+    cout << "molana_bleedthrough.C() ==> Coincidence Per BCM Count: " << coincidencePerBCMcount << endl;
+    cout << "molana_bleedthrough.C() ==> Coincidence Per BCM Bounds for Beam On Are: " << coincidencePerBCMcount-coinPerBcmStdevPM*coincidenceStdDev << " to " << coincidencePerBCMcount+coinPerBcmStdevPM*coincidenceStdDev << endl;
 
     //WHAT IS THE MEAN COIN AND STDEV WHEN BEAM IS ON?
     nbytes = 0;
     nb = 0;
     for (Long64_t entry = 0; entry < nentries; entry++) {
       nb = T->GetEntry(entry);
-      nbytes += nb;  
-      if( (abs(coinc1-coinc2) > 2) ){                    //DO COINCIENCE SCALER COUNTS MATCH?
+      nbytes += nb;
+
+      //IF THE SCALAR COINCIDENCE DON'T MATCH 
+      if( (abs(coinc1-coinc2) > 2) ){
         continue;
       }
-      if( abs((Int_t)((Float_t)bcm-(bcm_mean_beamon))) < (Int_t)(5*bcm_stdev_beamon) ){  //BEAM ON CONDITION
+
+      //IS THE COIN PER BCM COUNT LOW?
+      Bool_t coinPerBcmLow = false;
+      Bool_t coinPerBcmHigh= false;
+      if( (Float_t)(coinc1)/(Float_t)(bcm) < coincidencePerBCMcount-coinPerBcmStdevPM*coincidenceStdDev ) coinPerBcmLow = true; 
+      if( (Float_t)(coinc1)/(Float_t)(bcm) > coincidencePerBCMcount+coinPerBcmStdevPM*coincidenceStdDev ) coinPerBcmHigh= true; 
+      
+     
+
+      //if( abs((Int_t)((Float_t)bcm-(bcm_mean_beamon))) < (Int_t)(5*bcm_stdev_beamon) ){  //OLD BEAM ON CONDITION
+      //NEW BEAM ON CONDITION -- IS THE DIFFERENCE BETWEEN THE COINPERBPM and MEANCOINPERBPM LESS THAN SOME PLUS/MINUS FACTOR TIMES STDEV OF COIN/BCM MEAN
+      if( abs( (Float_t)(coinc1)/(Float_t)(bcm) - coincidencePerBCMcount ) < (Int_t)(coinPerBcmStdevPM*coincidenceStdDev) ){   
         if( isbeamon[entry] == false ){
           for(Int_t i = -15; i <= 15; i++){
-            if( entry+i > 0 && entry+i < nentries-1 ) isbeamon[entry+i] = true; //NOTE WHERE BEAM IS ON AND MARK IT ON 10 INCREMENTS ON EACH SIDE
+            //NOTE WHERE BEAM IS ON AND MARK IT ON 10 INCREMENTS ON EACH SIDE, WE JUST WANT TO BE SURE WE DON'T CATCH THE EDGE WHERE BEAM IS OFF; 
+            //TODO: WILL NEED TO BE MODIFIED FOR HIGH FLIP RATES
+            if( entry+i > 0 && entry+i < nentries-1 ) isbeamon[entry+i] = true; 
           }
         }
         H[1]->Fill(coinc1);
@@ -367,6 +390,11 @@ void molana_bleedthrough(string FILE, Double_t FREQ, Bool_t BEAM ){
       nb = T->GetEntry(entry);
       nbytes += nb;
 
+      Bool_t coinPerBcmLow = false;
+      Bool_t coinPerBcmHigh= false;
+      if( (Float_t)(coinc1)/(Float_t)(bcm) < coincidencePerBCMcount-coinPerBcmStdevPM*coincidenceStdDev ) coinPerBcmLow = true; 
+      if( (Float_t)(coinc1)/(Float_t)(bcm) > coincidencePerBCMcount+coinPerBcmStdevPM*coincidenceStdDev ) coinPerBcmHigh= true; 
+
       if( (abs(coinc1-coinc2) > 2) ){                    //DO COINCIENCE SCALER COUNTS MATCH?
         continue;
       }
@@ -379,14 +407,18 @@ void molana_bleedthrough(string FILE, Double_t FREQ, Bool_t BEAM ){
       if( (abs(accid1-accid2) > 2) ){                    //DO COINCIENCE SCALER COUNTS MATCH?
         continue;
       }
-      if( (bcm < low_bcm_threshold && coinc1 < low_coin_threshold) && (singl1 > low_coin_threshold || singr1 > low_coin_threshold) && isbeamon[entry]==false ){
+
+      //if( (bcm < low_bcm_threshold && coinc1 < low_coin_threshold) && (singl1 > low_coin_threshold || singr1 > low_coin_threshold) && isbeamon[entry]==false ){ //OLD CONDITION
+      if( (bcm < low_bcm_threshold && coinc1 < low_coin_threshold) && (singl1 > low_coin_threshold || singr1 > low_coin_threshold) && isbeamon[entry]==false ){ //OLD CONDITION
         cout << ">>>   bcm: " << bcm    << endl
              << ">>> singl: " << singl1 << endl
              << ">>> singr: " << singr1 << endl
              << ">>> coinc: " << coinc1 << endl
              << ">>> accid: " << accid1 << endl << endl;
       }
-      if( bcm < low_bcm_threshold && coinc1 < low_coin_threshold && isbeamon[entry]==false){
+
+      //if( bcm < low_bcm_threshold && coinc1 < low_coin_threshold && isbeamon[entry]==false){
+      if( coinPerBcmLow && isbeamon[entry]==false){
         H[ 2]->Fill(bcm);
         H[ 3]->Fill(singl1);
         H[ 4]->Fill(singr1);
@@ -407,11 +439,15 @@ void molana_bleedthrough(string FILE, Double_t FREQ, Bool_t BEAM ){
 
     cout << "molana_bleedthrough.C() ==> End pedestal and bleedthrough analysis for run taken with beam ON." << endl;
 
+    cout << "molana_bleedthrough.C() ==> Total number of entries in charge pedestal histogram is: " << H[2]->GetEntries() << endl;
+
     //WAS THERE A SUFFICIENT AMOUNT OF BEAM OFF DATA DURING THE RUN TO ASCERTAIN A PEDESTAL?
-    if(H[2]->GetEntries() < 500){
+    if(H[2]->GetEntries() < 300){
       cout << "molana_bleedthrough.C() ==> Amount of beam off cycles was too few. Exiting..." << endl;
       exit(0);
     }
+
+    cout << "molana_bleedthrough.C() ==> Mean charge pedestal calculated when beam was off is: " << H[2]->GetMean() << endl;
 
   }//END IF(BEAM)
 
@@ -471,13 +507,17 @@ void molana_bleedthrough(string FILE, Double_t FREQ, Bool_t BEAM ){
   Int_t height_ratio_b = 454;
 
   TCanvas * c_beamon_calib = new TCanvas("c_beamon_calib","c_beamon_calib",width_allplots,height_ratio_b);
-  c_beamon_calib->Divide(2,1);
+  c_beamon_calib->Divide(3,1);
   c_beamon_calib->cd(1);
   H[0]->GetXaxis()->SetRangeUser(H[0]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[0]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[0]->Draw();
   c_beamon_calib->cd(2);
   H[1]->GetXaxis()->SetRangeUser(H[1]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[1]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[1]->Draw();
+  c_beamon_calib->cd(3);
+  H[8]->GetXaxis()->SetRangeUser(H[8]->FindFirstBinAbove( 0. , 1 ),H[8]->FindLastBinAbove ( 0. , 1 ));
+  H[8]->Draw();
+
 
   TCanvas * c_beamon_bleed = new TCanvas("c_beamon_bleed","c_beamon_bleed",width_allplots,height_ratio_s);
   c_beamon_bleed->Divide(3,2);

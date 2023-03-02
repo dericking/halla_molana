@@ -1,6 +1,18 @@
 #!/bin/bash
 
+###############################################################
+#
+# USAGE ./updateGroupTypes startGroup endGroup
+#
+# If no start group specified defaults to 0
+# If no end group specified defaults to 99999
+#
+###############################################################
+
+rm -f GROUP_TYPE_UPDATE_LIST.txt;
+
 STARTGRP=$1;
+ENDGROUP=$2;
 
 ##COPY LARGER ENV VAR NAMES TO COMPACT
 MDBHOST=${MOLANA_DB_HOST}
@@ -11,13 +23,17 @@ MROOTDR=${MOLLER_ROOTFILE_DIR}
 ANALDIR=${MOLANA_DATADECODER_DIR}
 RSLTDIR=${MOLANA_ONLINE_PUSH_DIR}
 
+if [[ -z $STARTGRP ]]; then
+    STARTGRP=0;
+fi
+
+if [[ -z $ENDGROUP ]]; then
+    ENDGROUP=99999;
+fi
+
 echo "=======> Starting updateGroupTypes.sh script for ${STARTGRP}" ;
 
-if [[ -z $STARTGRP ]]; then
-    mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT DISTINCT FLOOR(rundet_pcrex_group) FROM moller_run_details ORDER BY FLOOR(rundet_pcrex_group) ASC;" > GROUP_TYPE_UPDATE_LIST.txt
-else
-    echo "$STARTGRP" > GROUP_TYPE_UPDATE_LIST.txt
-fi
+mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT DISTINCT FLOOR(rundet_pcrex_group) FROM moller_run_details WHERE FLOOR(rundet_pcrex_group) > ${STARTGRP} AND FLOOR(rundet_pcrex_group) <= ${ENDGROUP} ORDER BY FLOOR(rundet_pcrex_group) ASC;" > GROUP_TYPE_UPDATE_LIST.txt
 
 while IFS=: read -r GROUPNUM; do
 
@@ -51,10 +67,7 @@ while IFS=: read -r GROUPNUM; do
         mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "${UDSTRING}"
     fi
 
-
-
 done < GROUP_TYPE_UPDATE_LIST.txt
 
 echo "Group type updating completed! :)";
 
-rm GROUP_TYPE_UPDATE_LIST.txt;

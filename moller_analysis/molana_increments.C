@@ -52,7 +52,9 @@ void molana_increments(string FILE, const Int_t DELAY)
     cout << "molana_increments.C() ==> ROOT data file found" << endl;
   }
   TString sizecmd("");
-  sizecmd = Form("wc -c %s/moller_data_%d.root | awk '{print $1}'", gSystem->Getenv("MOLLER_ROOTFILE_DIR") ,RUNN);
+  //sizecmd = Form("wc -c %s/moller_data_%d.root | awk '{print $1}'", gSystem->Getenv("MOLLER_ROOTFILE_DIR") ,RUNN);
+  //FIX FOR ANY FILE DATA TYPE
+  sizecmd = Form("wc -c %s | awk '{print $1}'", sfile.Data() );
   TString datafilesizestring = gSystem->GetFromPipe( sizecmd );
   Int_t datafilesizeint      = datafilesizestring.Atoi();
   if(datafilesizeint < 75000){
@@ -69,6 +71,7 @@ void molana_increments(string FILE, const Int_t DELAY)
   cout << "molana_increments.C() ==> Declaring data holders." << endl;
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //DATA HOLDERS
+
   const Int_t     NSCA = 32;
   const Int_t     NTRG = 8; 
   Short_t         irun;
@@ -82,8 +85,14 @@ void molana_increments(string FILE, const Int_t DELAY)
   Int_t           nsca;
   Int_t           isca[NSCA];
 
-  Int_t allscal[N][NSCA];
-  Int_t alltrig[N][NTRG];
+  Int_t ** allscal = new Int_t*[N];
+  for(Int_t i = 0; i < N; i++) allscal[i] = new Int_t [NSCA];
+
+  Int_t ** alltrig = new Int_t*[N];
+  for(Int_t i = 0; i < N; i++) alltrig[i] = new Int_t [NTRG];
+
+  //Int_t allscal[N][NSCA];
+  //Int_t alltrig[N][NTRG];
   Int_t alltick[N];
 
   //Double_t alltimes[nentries];//Occassionally tossing a core-dump due to some sort of memory addressing problem. Happened in 9 out of 1400 runs.  :/

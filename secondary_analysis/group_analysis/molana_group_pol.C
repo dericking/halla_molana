@@ -748,7 +748,7 @@ Int_t molana_group_pol(TString runnumbers, Int_t GROUP, Double_t PTARG, Double_t
   Float_t group_block_asymgaus_chi2ndf  = fitasymblkgaus->GetChisquare() / (Float_t)fitasymblkgaus->GetNDF();
 
   //////////////////////////////////////////////////////////  ⠂⠂⠂⠂⠂◘⠨⠨⠨⠨⠨⠨⠨⠨
-  // WRITE DATA STATS TO SQL DATABASE ON START ... THIS WAY RUN DATA IS INSERTED EVEN IF DATA IS BAD
+  // WRITE DATA STATS TO SQL DATABASE
   if(writetosql){
     cout << "molana_anaysis.C() ==> Writing prompt stats to " << db_host << "." << endl;
     TSQLServer * ServerEnd = TSQLServer::Connect(db_host,db_user,db_pass);
@@ -759,6 +759,9 @@ Int_t molana_group_pol(TString runnumbers, Int_t GROUP, Double_t PTARG, Double_t
     TString sqlEndUpdate6 = Form("group_anpow = %.8f, group_targpol = %.8f, group_dttau = %.8f WHERE id_group = %d;",ANPOW,PTARG,DTTAU,GROUP);
     
     TString sqlEndUpdate = sqlEndUpdate1 + sqlEndUpdate2 + sqlEndUpdate4 + sqlEndUpdate5 + sqlEndUpdate6;
+
+    cout << sqlEndUpdate << endl; 
+
     TSQLResult * resultEnd = ServerEnd->Query(sqlEndUpdate.Data());
     ServerEnd->Close();
   }

@@ -27,9 +27,7 @@ fi
 
 ## START ON THE LIST OF GROUPS
 while IFS=: read -r GROUPNUM; do
-#    if(( GROUPNUM < 1000 )); then #EXCLUDE PREX2 GROUPS
-#    if(( GROUPNUM < 3000 )); then #EXCLUDE CREX GROUPS
-    if(( GROUPNUM < 3100 )); then #PROCESS SBS GROUPS ONLY
+    if(( GROUPNUM < 1000 )); then 
             continue; 
     fi
 

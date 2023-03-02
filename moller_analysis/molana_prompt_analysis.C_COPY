@@ -406,7 +406,7 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   // FOR TH2D DO THE SAME THING
   const Int_t nhist1 = 17;
   TH1F * H[nhist1];
-  Int_t i_incrbin = 10000;
+  Int_t i_incrbin = 5000;
   Int_t i_incrmin = 0;
   Int_t i_incrmax = 10000;
   H[ 0] = new TH1F("inc_singl_1", Form("Left Increments (Module 1) : Run %i",RUNN),  i_incrbin, i_incrmin, i_incrmax);
@@ -418,12 +418,12 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   H[ 6] = new TH1F("inc_singr_2", Form("Right Increments (Module 2) : Run %i",RUNN), i_incrbin, i_incrmin, i_incrmax);
   H[ 7] = new TH1F("inc_coinc_2", Form("Coin Increments (Module 2) : Run %i",RUNN),  i_incrbin, i_incrmin, i_incrmax);
   H[ 8] = new TH1F("inc_accid_2", Form("Accid Increments (Module 2) : Run %i",RUNN), i_incrbin, i_incrmin, i_incrmax);
-  H[ 9] = new TH1F("incdiffleft", Form("Left Increments (Module 1-Module 2) : Run %i", RUNN),  i_incrbin, i_incrmin, i_incrmax);
-  H[10] = new TH1F("incdiffrght", Form("Right Increments (Module 1-Module 2) : Run %i", RUNN), i_incrbin, i_incrmin, i_incrmax);
-  H[11] = new TH1F("incdiffcoin", Form("Coin Increments (Module 1-Module 2) : Run %i", RUNN),  i_incrbin, i_incrmin, i_incrmax);
-  H[12] = new TH1F("incdiffaccd", Form("Accid Increments (Module 1-Module 2) : Run %i", RUNN), i_incrbin, i_incrmin, i_incrmax);
-  H[13] = new TH1F("incclktimer", Form("Clock Timer Increments : Run %i", RUNN),     i_incrbin, i_incrmin, i_incrmax);
-  Int_t asymbin = 601;
+  H[ 9] = new TH1F("incdiffleft", Form("Left Increments (Mod1-Mod2) : Run %i",RUNN), i_incrbin, i_incrmin, i_incrmax);
+  H[10] = new TH1F("incdiffrght", Form("Right Increments (Mod1-Mod2) : Run %i",RUNN),i_incrbin, i_incrmin, i_incrmax);
+  H[11] = new TH1F("incdiffcoin", Form("Coin Increments (Mod1-Mod2) : Run %i",RUNN), i_incrbin, i_incrmin, i_incrmax);
+  H[12] = new TH1F("incdiffaccd", Form("Accid Increments (Mod1-Mod2) : Run %i",RUNN),i_incrbin, i_incrmin, i_incrmax);
+  H[13] = new TH1F("incclktimer", Form("Clock Timer Increments : Run %i",RUNN),      i_incrbin, i_incrmin, i_incrmax);
+  Int_t asymbin = 301;
   Int_t asymmin =  -1;
   Int_t asymmax =   1;
   H[14] = new TH1F("asym_uncr", Form("Prompt Pattern-Level Uncorrected Asym Dist : Run %i",RUNN), asymbin, asymmin, asymmax);
@@ -446,7 +446,7 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
     gr_accd1->SetTitle( Form("Prompt Accidental Scaler (Module 1) : Run %i;Entry",RUNN));
     gr_accd1->SetMarkerStyle(6);
   TGraph * gr_charg = new TGraph();
-    gr_charg->SetTitle( Form("Prompt BCM Scaler : Run %i;Entry",RUNN));
+    gr_charg->SetTitle( Form("Prompt BCM Scaler (Not Ped Subt'd) : Run %i;Entry",RUNN));
     gr_charg->SetMarkerStyle(6);
   TGraph * gr_clock = new TGraph();
     gr_clock->SetTitle( Form("Prompt Clock Generator : Run %i;Entry",RUNN));
@@ -675,12 +675,14 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
     coinc1_stk[entry%stksz]          = coinc1 / dead_time_corr_fac;
     accid1_stk[entry%stksz]          = accid1 / dead_time_corr_fac;
 
-    singl1_stk2[entry%stksz]         = singl1;                       //explicitly used for making pattern file with unaltered values
-    singr1_stk2[entry%stksz]         = singr1;                       //explicitly used for making pattern file with unaltered values
-    coinc1_stk2[entry%stksz]         = coinc1;                       //explicitly used for making pattern file with unaltered values
-    accid1_stk2[entry%stksz]         = accid1;                       //explicitly used for making pattern file with unaltered values
+    singl1_stk2[entry%stksz]         = singl1; //explicitly used for making pattern file with unaltered values
+    singr1_stk2[entry%stksz]         = singr1; //explicitly used for making pattern file with unaltered values
+    coinc1_stk2[entry%stksz]         = coinc1; //explicitly used for making pattern file with unaltered values
+    accid1_stk2[entry%stksz]         = accid1; //explicitly used for making pattern file with unaltered values
 
-    bcm_stk[entry%stksz]             = bcm - bcmped;                 //charge pedestal subtraction
+    if((bcm-bcmped)<2.) bcm_stk[entry%stksz] = 0;           //If this quantity is < 1. then beam is off.
+    else                bcm_stk[entry%stksz] = bcm-bcmped;  //If this quantity is > 1. then beam is on; record ped subtracted value.
+
     ledflash_stk[entry%stksz]        = ledflash;
     clockheltrig_stk[entry%stksz]    = clockheltrig;
     mps_stk[entry%stksz]             = mps;
@@ -711,7 +713,7 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
     r1scalsum += singr1;              //RIGHT SCALER SUM
     c1scalsum += coinc1;              //COINC SCALER SUM
     a1scalsum += accid1;              //ACCID SCALER SUM
-    bcmscalsm += bcm - bcmped;        //BCM SCALER SUM
+    bcmscalsm += bcm;                 //BCM SCALER SUM -- Scaler charts, do not sub bcm ped.
     clkscalsm += clocktimer;          //CLOCK SCALER SUM
     gr_sngl1->SetPoint( entry, entry, (Double_t)l1scalsum );
     gr_sngr1->SetPoint( entry, entry, (Double_t)r1scalsum );
@@ -1014,17 +1016,14 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
       Double_t coin0(0.),coin1(0.),coinS(0.),left0(0.),left1(0.),leftS(0.);
       Double_t rght0(0.),rght1(0.),rghtS(0.),accd0(0.),accd1(0.),accdS(0.);
       Double_t curr0(0.),curr1(0.),currS(0.);
-      //cout << "[" << fileeventnumber_stk[goodpattindex] << "] Good cycle coin recorded to patterns temp array: ";
       for(Int_t i = 0; i < heln; i++){
         if(temphels[i] == 0){
-          //cout << tempcoin[i] << "/0, ";
           coin0 += tempcoin[i];
           left0 += templeft[i];
           rght0 += temprght[i];
           accd0 += tempaccd[i];
           curr0 += tempcurr[i];
         } else {
-          //cout << tempcoin[i] << "/1, ";
           coin1 += tempcoin[i];
           left1 += templeft[i];
           rght1 += temprght[i];
@@ -1032,7 +1031,6 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
           curr1 += tempcurr[i];
         }
       }
-      //cout << ">>> " << coin0 << "/0" << "," << coin1 << "/1" << endl;
 
       temppattvaluesD[ 0] = coin0;// / heln;
       temppattvaluesD[ 1] = coin1;// / heln;
@@ -1121,14 +1119,12 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
       //cout << "[" << fileeventnumber_stk[goodpattindex] << "] BADD cycle coin recorded to patterns temp array: ";
       for(Int_t i = 0; i < heln; i++){
         if(temphels[i] == 0){
-          //cout << tempcoin[i] << "/0, ";
           coin0 += tempcoin[i];
           left0 += templeft[i];
           rght0 += temprght[i];
           accd0 += tempaccd[i];
           curr0 += tempcurr[i];
         } else {
-          //cout << tempcoin[i] << "/1, ";
           coin1 += tempcoin[i];
           left1 += templeft[i];
           rght1 += temprght[i];
@@ -1136,7 +1132,6 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
           curr1 += tempcurr[i];
         }
       }
-      //cout << ">>> " << coin0 << "/0" << "," << coin1 << "/1" << endl;
 
       temppattvaluesD[ 0] = coin0;// / heln;
       temppattvaluesD[ 1] = coin1;// / heln;
@@ -1164,16 +1159,11 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
       temppattvaluesD[19] = (curr1 + curr0);// / heln; 
       temppattvaluesD[20] = (curr1 - curr0) / (curr1 + curr0); 
 
-      //cout << "Bad qasymmetry: " << std::setw(11) << std::fixed << (curr1 - curr0) / (curr1 + curr0) << endl; 
-
       temppattvaluesI[ 0] = temptime; 
       temppattvaluesI[ 1] = tempnumb;         //numb
       temppattvaluesI[ 2] = tempsign;         //sign
       temppattvaluesI[ 3] = errorcode_stk[patterrindex];
-      //what to do if cycle tossed beccause of bad neighbor?
-      if(temppattvaluesI[3]==0) temppattvaluesI[3] = -1;
-      //cout << "         Error code recorded for pattern: " << temppattvaluesI[3] << " = " << errorcode_stk[patterrindex] << endl;
-
+      if(temppattvaluesI[3]==0) temppattvaluesI[3] = -1; //If this cycle gets tossed it's an adjacency cut.
       temppattvaluesI[ 4] = RUNN;
       temppattvaluesI[ 5] = tempindex;
 
@@ -1206,6 +1196,10 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   }
   errorsummary.close();
 
+  //////////////////////////////////////////////////////////  ⠂⠂⠂⠂⠂◘⠨⠨⠨⠨⠨⠨⠨⠨
+  //Close the patterns file here. THERE ARE EXIT COMMANDS AFTER THIS. DO NOT PLACE AFTER THIS.
+  fout->Write();
+
   if(grpattctr == 0){//NOTE: EXITING DUE TO ZERO HIST/GRAPH ENTRIES //TODO: SHOULD PROBABLY STILL REPORT QPED, CLOCK, ETC (IF AVAILABLE)
 
     //////////////////////////////////////////////////////////  ⠂⠂⠂⠂⠂◘⠨⠨⠨⠨⠨⠨⠨⠨
@@ -1218,7 +1212,9 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
       TSQLResult * resultEnd = ServerEnd->Query(queryEnd.Data());
       ServerEnd->Close();
     }
+
     exit(3);
+
     //////////////////////////////////////////////////////////  ⠂⠂⠂⠂⠂◘⠨⠨⠨⠨⠨⠨⠨⠨
     // SAVE RUN DATA SUMMARY -- RUN,SINGL,SINGR,COINC,ACCID,BCM,ASYM,ASYMERR,POL,POLERR
     ofstream summary;
@@ -1246,8 +1242,6 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
 
   }
 
-  fout->Write();
-
   cout << "molana_anaysis.C() ==> Finished analyzing increments file and wrote 'patterns' ROOT file." << endl;
 
   //////////////////////////////////////////////////////////  ⠂⠂⠂⠂⠂◘⠨⠨⠨⠨⠨⠨⠨⠨
@@ -1259,7 +1253,7 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   Int_t height_ratio_s = 621;
   Int_t height_ratio_b = 454;
 
-  TCanvas * c_scalersums = new TCanvas("c_scalersums","c_scalersums",width_allplots,height_ratio_g);
+  TCanvas * c_scalersums = new TCanvas("c_scalersums","c_scalersums",width_allplots,height_ratio_s);
   c_scalersums->Divide(3,2);
   c_scalersums->cd(1);
   gr_sngl1->Draw("AP");
@@ -1274,50 +1268,50 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   c_scalersums->cd(6);
   gr_clock->Draw("AP");
 
-  TCanvas * c_increment1 = new TCanvas("c_increment1","c_increment1",width_allplots,height_ratio_g);
+  TCanvas * c_increment1 = new TCanvas("c_increment1","c_increment1",width_allplots,height_ratio_s);
   Int_t sidebuff = 100;
   c_increment1->Divide(3,2);
   c_increment1->cd(1)->SetLogy();
-  H[ 0]->GetXaxis()->SetRangeUser(H[ 0]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[ 0]->FindLastBinAbove ( 0. , 1 )+sidebuff);
+  H[ 0]->GetXaxis()->SetRangeUser((H[ 0]->FindFirstBinAbove( 0. , 1 )-sidebuff)*i_incrmax/i_incrbin,(H[ 0]->FindLastBinAbove ( 0. , 1 )+sidebuff)*i_incrmax/i_incrbin);
   H[ 0]->Draw();
   c_increment1->cd(2)->SetLogy();
-  H[ 5]->GetXaxis()->SetRangeUser(H[ 5]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[ 5]->FindLastBinAbove ( 0. , 1 )+sidebuff);
+  H[ 5]->GetXaxis()->SetRangeUser((H[ 5]->FindFirstBinAbove( 0. , 1 )-sidebuff)*i_incrmax/i_incrbin,(H[ 5]->FindLastBinAbove ( 0. , 1 )+sidebuff)*i_incrmax/i_incrbin);
   H[ 5]->Draw();
   c_increment1->cd(3)->SetLogy();
-  H[ 9]->GetXaxis()->SetRangeUser(H[ 9]->FindFirstBinAbove( 0. , 1 )-sidebuff/10,H[ 9]->FindLastBinAbove ( 0. , 1 )+sidebuff/10);
+  H[ 9]->GetXaxis()->SetRangeUser((H[ 9]->FindFirstBinAbove( 0. , 1 )-sidebuff/10)*i_incrmax/i_incrbin,(H[ 9]->FindLastBinAbove ( 0. , 1 )+sidebuff/10)*i_incrmax/i_incrbin);
   H[ 9]->Draw();
   c_increment1->cd(4)->SetLogy();
-  H[ 1]->GetXaxis()->SetRangeUser(H[ 1]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[ 1]->FindLastBinAbove ( 0. , 1 )+sidebuff);
+  H[ 1]->GetXaxis()->SetRangeUser((H[ 1]->FindFirstBinAbove( 0. , 1 )-sidebuff)*i_incrmax/i_incrbin,(H[ 1]->FindLastBinAbove ( 0. , 1 )+sidebuff)*i_incrmax/i_incrbin);
   H[ 1]->Draw();
   c_increment1->cd(5)->SetLogy();
-  H[ 6]->GetXaxis()->SetRangeUser(H[ 6]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[ 6]->FindLastBinAbove ( 0. , 1 )+sidebuff);
+  H[ 6]->GetXaxis()->SetRangeUser((H[ 6]->FindFirstBinAbove( 0. , 1 )-sidebuff)*i_incrmax/i_incrbin,(H[ 6]->FindLastBinAbove ( 0. , 1 )+sidebuff)*i_incrmax/i_incrbin);
   H[ 6]->Draw();
   c_increment1->cd(6)->SetLogy();
-  H[10]->GetXaxis()->SetRangeUser(H[10]->FindFirstBinAbove( 0. , 1 )-sidebuff/10,H[10]->FindLastBinAbove ( 0. , 1 )+sidebuff/10);
+  H[10]->GetXaxis()->SetRangeUser((H[10]->FindFirstBinAbove( 0. , 1 )-sidebuff/10)*i_incrmax/i_incrbin,(H[10]->FindLastBinAbove ( 0. , 1 )+sidebuff/10)*i_incrmax/i_incrbin);
   H[10]->Draw();
 
-  TCanvas * c_increment2 = new TCanvas("c_increment2","c_increment2",width_allplots,height_ratio_g);
+  TCanvas * c_increment2 = new TCanvas("c_increment2","c_increment2",width_allplots,height_ratio_s);
   c_increment2->Divide(3,2);
   c_increment2->cd(1)->SetLogy();
-  H[ 2]->GetXaxis()->SetRangeUser(H[ 2]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[ 2]->FindLastBinAbove ( 0. , 1 )+sidebuff);
+  H[ 2]->GetXaxis()->SetRangeUser((H[ 2]->FindFirstBinAbove( 0. , 1 )-sidebuff)*i_incrmax/i_incrbin,(H[ 2]->FindLastBinAbove ( 0. , 1 )+sidebuff)*i_incrmax/i_incrbin);
   H[ 2]->Draw();
   c_increment2->cd(2)->SetLogy();
-  H[ 7]->GetXaxis()->SetRangeUser(H[ 7]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[ 7]->FindLastBinAbove ( 0. , 1 )+sidebuff);
+  H[ 7]->GetXaxis()->SetRangeUser((H[ 7]->FindFirstBinAbove( 0. , 1 )-sidebuff)*i_incrmax/i_incrbin,(H[ 7]->FindLastBinAbove ( 0. , 1 )+sidebuff)*i_incrmax/i_incrbin);
   H[ 7]->Draw();
   c_increment2->cd(3)->SetLogy();
-  H[11]->GetXaxis()->SetRangeUser(H[11]->FindFirstBinAbove( 0. , 1 )-sidebuff/10,H[11]->FindLastBinAbove ( 0. , 1 )+sidebuff/10);
+  H[11]->GetXaxis()->SetRangeUser((H[11]->FindFirstBinAbove( 0. , 1 )-sidebuff/10)*i_incrmax/i_incrbin,(H[11]->FindLastBinAbove ( 0. , 1 )+sidebuff/10)*i_incrmax/i_incrbin);
   H[11]->Draw();
   c_increment2->cd(4)->SetLogy();
-  H[ 3]->GetXaxis()->SetRangeUser(H[ 3]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[ 3]->FindLastBinAbove ( 0. , 1 )+sidebuff);
+  H[ 3]->GetXaxis()->SetRangeUser((H[ 3]->FindFirstBinAbove( 0. , 1 )-sidebuff)*i_incrmax/i_incrbin,(H[ 3]->FindLastBinAbove ( 0. , 1 )+sidebuff)*i_incrmax/i_incrbin);
   H[ 3]->Draw();
   c_increment2->cd(5)->SetLogy();
-  H[ 8]->GetXaxis()->SetRangeUser(H[ 8]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[ 8]->FindLastBinAbove ( 0. , 1 )+sidebuff);
+  H[ 8]->GetXaxis()->SetRangeUser((H[ 8]->FindFirstBinAbove( 0. , 1 )-sidebuff)*i_incrmax/i_incrbin,(H[ 8]->FindLastBinAbove ( 0. , 1 )+sidebuff)*i_incrmax/i_incrbin);
   H[ 8]->Draw();
   c_increment2->cd(6)->SetLogy();
-  H[12]->GetXaxis()->SetRangeUser(H[12]->FindFirstBinAbove( 0. , 1 )-sidebuff/10,H[12]->FindLastBinAbove ( 0. , 1 )+sidebuff/10);
+  H[12]->GetXaxis()->SetRangeUser((H[12]->FindFirstBinAbove( 0. , 1 )-sidebuff/10)*i_incrmax/i_incrbin,(H[12]->FindLastBinAbove ( 0. , 1 )+sidebuff/10)*i_incrmax/i_incrbin);
   H[12]->Draw();
 
-  TCanvas * c_increment3 = new TCanvas("c_increment3","c_increment3",width_allplots,height_ratio_s);
+  TCanvas * c_increment3 = new TCanvas("c_increment3","c_increment3",width_allplots,height_ratio_b);
   c_increment3->Divide(2,1);
   c_increment3->cd(1)->SetLogy();
   H[ 4]->GetXaxis()->SetRangeUser(H[ 4]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[ 4]->FindLastBinAbove ( 0. , 1 )+sidebuff);
@@ -1326,7 +1320,7 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   H[13]->GetXaxis()->SetRangeUser(H[13]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[13]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[13]->Draw();
 
-  TCanvas * c_asymhistos = new TCanvas("c_asymhistos","c_asymhistos",width_allplots,height_ratio_s);
+  TCanvas * c_asymhistos = new TCanvas("c_asymhistos","c_asymhistos",width_allplots,height_ratio_b);
   Double_t bufffact = 0.1;
   c_asymhistos->Divide(3,1);
   c_asymhistos->cd(1);
@@ -1359,13 +1353,13 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   TF1 * fitgrasym = gr_asymm->GetFunction("pol0");
   gr_asymm->Draw("AP");
 
-  TCanvas * c_grpolarizn = new TCanvas("c_grpolarizn","c_grpolarizn",1500,500);
+  TCanvas * c_grpolarizn = new TCanvas("c_grpolarizn","c_grpolarizn",1500,height_ratio_b);
   gr_polar->Draw("AP");
   gr_polar->Fit("pol0");
   TF1 * fitgrpolr = gr_polar->GetFunction("pol0");
   gr_polar->Draw("AP");
 
-  TCanvas * c_grcoinrate = new TCanvas("c_grcoinrate","c_grcoinrate",1500,500);
+  TCanvas * c_grcoinrate = new TCanvas("c_grcoinrate","c_grcoinrate",1500,height_ratio_b);
   gr_cnrat->Draw("AP");
   gr_cnrat->Fit("pol0");
   TF1 * fitgrcrat = gr_cnrat->GetFunction("pol0");
@@ -1422,16 +1416,12 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   Int_t    arat = (Int_t)(fitgrarat->GetParameter(0) ); //ACCIDENTALS RATE
   Int_t    qrat = (Int_t)(fitgrqrat->GetParameter(0) ); //CHARGE (BCM) RATE
   Int_t    clrt = (Int_t)(fitgrclck->GetParameter(0) ); //CLOCK RATE
-  //Double_t aavg = fitgrasym->GetParameter(0);		//ASYMMETRY MEAN FROM POL0 FIT
-  //Double_t aerr = fitgrasym->GetParError(0);		//ASYMMETRY MEAN ERROR FROM POL0 FIT
-  //Double_t pavg = fitgrpolr->GetParameter(0);		//POLARIZATION MEAN FROM POL0 FIT
-  //Double_t perr = fitgrpolr->GetParError(0);		//POLARIZATION MEAN ERROR FROM POL0 FIT
-  Double_t qamn = fitgrqasm->GetParameter(0);		//CHARGE ASYMMETRY MEAN
-  Double_t qaer = fitgrqasm->GetParError(0);		//CHARGE ASYMMETRY MEAN ERROR
-  Double_t aavg = fit6->GetParameter(1);		//ASYMMETRY MEAN FROM GAUS FIT
-  Double_t aerr = fit6->GetParError(1); 		//ASYMMETRY MEAN ERROR FROM GAUS FIT
+  Double_t aavg = fitgrasym->GetParameter(0);		//ASYMMETRY MEAN FROM POL0 FIT
+  Double_t aerr = fitgrasym->GetParError(0);		//ASYMMETRY MEAN ERROR FROM POL0 FIT
   Double_t pavg = fitgrpolr->GetParameter(0);		//POLARIZATION MEAN FROM POL0 FIT
   Double_t perr = fitgrpolr->GetParError(0);		//POLARIZATION MEAN ERROR FROM POL0 FIT
+  Double_t qamn = fitgrqasm->GetParameter(0);		//CHARGE ASYMMETRY MEAN
+  Double_t qaer = fitgrqasm->GetParError(0);		//CHARGE ASYMMETRY MEAN ERROR
   summary << std::fixed 
           << std::setw(5) << RUNN << "  "
           << std::setw(8) << lrat << "  "

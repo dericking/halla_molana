@@ -89,8 +89,7 @@ Int_t gatherGroupData(){
   TString sel1_query   = "SELECT id_group, group_date, group_anpow, ";
   TString sel2_query   = "CASE WHEN group_hwp = 'IN' THEN 1 WHEN group_hwp = 'OUT' THEN -1 END AS group_hwp, ";
   //TString sel3_query   = "group_wein, group_asym, group_asym_err, group_systematic, group_target ";
-  //TString sel3_query   = "group_wein, group_block_asym AS group_asym, group_block_asym_err, group_systematic, group_target ";
-  TString sel3_query   = "group_wein, group_block_asym AS group_asym, group_block_asym_err, group_target ";
+  TString sel3_query   = "group_wein, group_block_asym AS group_asym, group_block_asym_err, group_systematic, group_target ";
   TString from_query   = "FROM pcrex_groups ";
   TString where_query  = "WHERE group_type='beam_pol' AND id_group >= 1020 ";
   TString order_query  = "ORDER BY id_group ASC;";
@@ -185,7 +184,7 @@ Int_t gatherGroupData(){
       if( field=="group_wein"){ wein = value.Atoi(); }
       if( field=="id_group"){ idgr = value.Atoi(); }
       if( field=="group_date"){ value = value.ReplaceAll("-",""); }
-      //if( field=="group_systematic" && value == "" ){ value = "0.0"; }
+      if( field=="group_systematic" && value == "" ){ value = "0.0"; }
       if( field=="group_target"){  targ = value.Atoi(); }
       temp.push_back( value.Atof() );
     }

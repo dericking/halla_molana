@@ -48,7 +48,7 @@ while IFS=: read -r RUNNUMB; do
     else
         echo "Run already exists in moller_run_magnets table.";
         echo "   !!!!! Will not query the EPICS Archive again.";
-        continue;
+    #    continue;
     fi
 
     RUNCONF=${RUNCHECK}

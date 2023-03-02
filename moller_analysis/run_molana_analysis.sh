@@ -10,6 +10,7 @@ MDBNAME=${MOLANA_DB_NAME}
 MROOTDR=${MOLLER_ROOTFILE_DIR}
 ANALDIR=${MOLANA_DATADECODER_DIR}
 RSLTDIR=${MOLANA_ONLINE_PUSH_DIR}
+RWFLDIR=${MOLLER_DATA_DIR}
 
 BATCH=           #Are we running in batch mode?
 START=           #Start analysis at [run]
@@ -26,6 +27,7 @@ FORCEAP=false    #Force analyzing power
 FORCEQP=false    #Force charge pedestal
 FORCETP=false    #Force target polarization
 FORCEDT=false    #Force dead time correction value
+LEDMODE=false    #Sets analyzer to look for moller_led_*.root data file
 
 function printhelp(){
 
@@ -88,6 +90,12 @@ echo -e "                        and --batchend will result in an exit.\n"
 echo -e "     --batchend      )  Sets BATCH=true and assigns a batch start number. Start number"
 echo -e "                        must be smaller than end number. Failure to enter both --batchstart "
 echo -e "                        and --batchend will result in an exit.\n"
+
+echo -e "     --ledmode       )  Use this flag if DAQ was run in LED mode. Creates increments file and"
+echo -e "                        then terminates the rest of the analysis. Perhaps plot ADCs???\n"
+
+echo -e "     --pulmode       )  Use this flaf if DAQ was run in LED pulser mode. Creates increments"
+echo -e "                        and then terminates.\n"
 
 echo -e "     -h | --help     )  Prints the help. Duh."
 
@@ -157,6 +165,7 @@ function validatebatch(){
         echo -e "Error. Starting run is GREATER THAN ending run. Learn to count. :) Exiting... \n"
         exit;
     fi
+    echo "Starting run ${START} and ending run ${ENDAT}."
 }
 
 
@@ -178,6 +187,7 @@ while true; do
     --forceanpow    )  setforceap; shift ;;
     --forceqped     )  setforceqp; shift ;;
     --forcetargpol  )  setforcetp; shift ;;
+    --ledmode       )  LEDMODE=true; shift ;;
     --help          )  printhelp; shift;;
     --              )  shift; break ;;
     *               )
@@ -222,23 +232,28 @@ for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
     #################################################################
 
     
-    ## FIX ME!!!!!!!!!!!!!!!!!!!!
-    ##PUT IN FOR PREX-RERUN WIHTOUT DEADTIME... REMOVE LATER
-    RUNTYPE=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT rundet_type FROM moller_run_details WHERE id_rundet=${ANALRUN};")
-    if [[ "$RUNTYPE" != "beam_pol" ]]; then
-      echo "Not a beam_pol run. Skipping....";
-      continue;
-    fi
-
-
-    
-
     FORCENEW=false;
+
+    #TODO: WE NEED TO MODIFY BELOW FOR LED RUNS, THE LS WITH WILDCARD HAS ISSUES. 
 
     ##WHERE ARE THE FILES THAT WE NEED LOCATED?
     SETFILE="${MROOTDR}/mollerrun_${ANALRUN}.set"
     DATFILE="${MROOTDR}/moller_data_${ANALRUN}.root"
+    if [[ "${LEDMODE}" == true ]]; then
+      DATFILE="${MROOTDR}/moller_data_led_${ANALRUN}.root"
+    fi;
+    if [[ "${PULMODE}" == true ]]; then
+      DATFILE="${MROOTDR}/moller_data_puls_${ANALRUN}.root"
+    fi;
+    #MATCH FOR DATA FILE WILL BE UNIQUE 
+    #DATFILE=$( ls ${MROOTDR}/moller*${ANALRUN}.root )
+    echo "Found data file for ${ANALRUN}: ${DATFILE}"
     INCFILE="${MROOTDR}/molana_increments_${ANALRUN}.root"
+
+    ##LET'S GET A NAME FOR THE RAW DATA FILE TO PASS TO DON'S DECODER
+    RAWDATA=$(ls ${RWFLDIR}/moller_data*${ANALRUN}.dat | xargs -n 1 basename);
+    echo "run_molana_analysis() ==> Found raw data file: ${RAWDATA}";
+
     ##HAVE WE ALREADY COPIED THE SETTINGS FILE?
     if [[ -f "${SETFILE}" ]]; then
         echo "run_molana_analysis() ==> Settings file already copied to MOLANA ROOT repository. :)"
@@ -256,13 +271,15 @@ for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
         echo "run_molana_analysis() ==> Re-Populating moller settings into hamolpoldb..."
         ./populate_settings_in_molpol_db.sh ${ANALRUN}
         echo "run_molana_analysis() ==> Making MOLANA data file..."
-        ${ANALDIR}/molana ${ANALRUN}
+        #${ANALDIR}/molana ${ANALRUN}
+        ${ANALDIR}/molana ${RAWDATA}
     fi
 
+    ##TODO: Fetch this from the settings database. Replaced seds with wildcarded literals
     ##IF WE HAVE THE SETTINGS AND DATA FILE LET'S START
     if [[ -f $SETFILE && -f $DATFILE ]];then
         ##WHAT IS THE PATTERN
-        PATTERN=$(sed -n -e "s#\(Helicity Mode ON/OFF Random/Toggle   HELPATTERNd          : \)##p" $SETFILE)
+        PATTERN=$(sed -n -e "s#\(.*HELPATTERNd.* : \)##p" $SETFILE)
         if [ $PATTERN == "Octet" ]; then
           PATTERN=8;
         fi
@@ -270,8 +287,8 @@ for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
           PATTERN=4;
         fi
         ##WHAT IS THE FREQUENCY? DELAY?  DATE?
-        FREQNCY=$(sed -n -e "s#\(Helicity frequency                   HELFREQ              : \)##p" $SETFILE)
-        HELDLAY=$(sed -n -e "s#\(Helicity delay                       HELDELAYd            : \)##p" $SETFILE)
+        FREQNCY=$(sed -n -e "s#\(.*HELFREQ.* : \)##p" $SETFILE)
+        HELDLAY=$(sed -n -e "s#\(.*HELDELAYd.* : \)##p" $SETFILE)
         FREQNCY=${FREQNCY//[!0-9.]/}
         HELDLAY=${HELDLAY//[!0-9]/}
         RUNDATE=$(sed -n -e "s#\(Date       : \)##p" $SETFILE)
@@ -286,6 +303,11 @@ for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
         else
             echo "run_molana_analysis() ==> Making MOLANA increments ROOT file..."
             root -b -l -q "molana_increments.C+(\""${DATFILE}"\","${HELDLAY}")"
+        fi
+
+        ##IF THIS IS AN LED OR PULS RUN CAN WE JUST STOP HERE FOR NOW?
+        if [[ "${LEDMODE}" == true || "${PULMODE}" == true ]]; then
+            exit 1;
         fi
 
         ##IS THE RUN NEW TO THE DATABASE? IN WHICH CASE WE MUST FORCE THE CONFIGURATION FILE
@@ -377,11 +399,11 @@ for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
           root -b -l -q "molana_bleedthrough.C+(\""${INCFILE}"\",${FREQNCY},1)"
         fi
 
-
+        #TODO: BURST CRASHING -- FIND OUT WHY
         ## Copy magnet set points to the table
-        ./run_copy_moller_magnets.sh   ${ANALRUN}
+        #./run_copy_moller_magnets.sh   ${ANALRUN}
         ## Run the burst_analysis -- fills multiple asymmetries at burst level (prompt only handles moller asym)
-        ./run_molana_burst_analysis.sh ${ANALRUN}
+        #./run_molana_burst_analysis.sh ${ANALRUN}
      
         ########################## REMOVE THIS IF CONDITION.   THE REST STAYS
         #if [[ "$RUNTYPE" == "beam_pol" ]]; then
@@ -389,7 +411,7 @@ for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
         if [ ! -d "${RSLTDIR}/files/run_${ANALRUN}" ]; then mkdir ${RSLTDIR}/files/run_${ANALRUN}; fi
         rm -f ${RSLTDIR}/files/run_${ANALRUN}/*.png
         rm -f ${RSLTDIR}/files/run_${ANALRUN}/*.pdf
-        mv  errors_${ANALRUN}.txt          ${RSLTDIR}/files/run_${ANALRUN}/
+        mv -f  errors_${ANALRUN}.txt       ${RSLTDIR}/files/run_${ANALRUN}/
         mv  *.png                          ${RSLTDIR}/files/run_${ANALRUN}/
         mv  molana_*_stats_${ANALRUN}      ${MROOTDR}/prompt_stats/
 
@@ -399,11 +421,11 @@ for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
      
 
     else
-        if [[ -f $DATFILE ]];then
-            echo "run_molana_analysis() ==> File  ${DATFILE}  does not exist!"
+        if [[ ! -f $DATFILE ]];then
+            echo "(ERROR) run_molana_analysis() ==> Data file  ${DATFILE}  does not exist!"
         fi
-        if [[ -f $SETFILE ]];then
-            echo "run_molana_analysis() ==> File  ${SETFILE}  does not exist!"
+        if [[ ! -f $SETFILE ]];then
+            echo "(ERROR) run_molana_analysis() ==> Settings file  ${SETFILE}  does not exist!"
         fi
     fi
 

@@ -1,0 +1,46 @@
+2022-11-16,19949,19949,0.7777777,test,,0.5uA; no target,
+2022-11-16,19950,19950,0.7777777,test,,0.5uA; no target,
+2022-11-16,19951,19951,0.7777777,test,,1.0uA; no target,
+2022-11-16,19954,19954,0.7777777,test,,0.5uA; 4um foil,
+2022-11-16,19955,19955,0.7777777,test,,0.5uA; 4um foil,
+2022-11-16,19957,19957,0.7777777,test,,0.5uA; 4um foil,
+2022-11-16,19958,19958,0.7777777,test_hv,,4um foil (HV changed; left trigger),
+2022-11-16,19959,19959,0.7777777,test_hv,,4um foil (HV changed; left trigger),
+2022-11-16,19960,19960,0.7777777,test_hv,,4um foil (HV changed; left trigger),
+2022-11-16,19961,19961,0.7777777,test_hv,,4um foil (HV changed; left trigger),
+2022-11-16,19961,19961,0.7777777,test_hv,,4um foil (HV changed; right trigger),
+2022-11-16,19961,19961,0.7777777,test_hv,,4um foil (HV changed; right trigger),
+2022-11-16,19979,19979,0.7777777,test_hv,,4um foil (HV changed; left trigger),
+2022-11-16,19980,19980,0.7777777,test_hv,,4um foil (HV changed; left trigger),
+2022-11-16,19981,19981,0.7777777,test_hv,,4um foil (HV changed; left trigger final setting),
+2022-11-16,19982,19982,0.7777777,test_hv,,4um foil (HV changed; right trigger),
+2022-11-16,19983,19983,0.7777777,test_hv,,4um foil (HV changed; right trigger),
+2022-11-16,19984,19984,0.7777777,test_hv,,4um foil (HV changed; right trigger final setting),
+2022-11-16,19988,19988,0.7693,scan_rates,3100.0,Q2 Rate Scan; Q2 = 72.8 A,SBS-GEn
+2022-11-16,19989,19989,0.7777777,junk,,,
+2022-11-16,19990,19990,0.7693,scan_rates,3100.0,Q2 Rate Scan; Q2 = 60.5 A,SBS-GEn
+2022-11-16,19991,19991,0.7693,scan_rates,3100.0,Q2 Rate Scan; Q2 = 48.2 A,SBS-GEn
+2022-11-16,19992,19992,0.7693,scan_rates,3100.0,Q2 Rate Scan; Q2 = 35.9 A,SBS-GEn
+2022-11-16,19993,19993,0.7693,scan_rates,3100.0,Q2 Rate Scan; Q2 = 23.6 A,SBS-GEn
+2022-11-16,19994,19994,0.7693,scan_rates,3100.0,Q2 Rate Scan; Q2 = 11.2 A,SBS-GEn
+2022-11-16,19995,19995,0.7693,scan_rates,3100.0,Q2 Rate Scan; Q2 = -1.1 A,SBS-GEn
+2022-11-16,19996,19996,0.7693,scan_rates,3100.0,Q2 Rate Scan; Q2 = -13.4 A,SBS-GEn
+2022-11-16,19997,19997,0.7693,scan_rates,3100.0,Q2 Rate Scan; Q2 = -25.8 A,SBS-GEn
+2022-11-16,19998,19998,0.7693,scan_rates,3101.0,DP Rate Scan; DP = 262.5 A,SBS-GEn
+2022-11-16,19999,19999,0.7693,scan_rates,3101.0,DP Rate Scan; DP = 273.6 A,SBS-GEn
+2022-11-16,20000,20000,0.7693,scan_rates,3101.0,DP Rate Scan; DP = 284.7 A,SBS-GEn
+2022-11-16,20001,20001,0.7693,scan_rates,3101.0,DP Rate Scan; DP = 299.4 A,SBS-GEn
+2022-11-16,20002,20002,0.7693,scan_rates,3101.0,DP Rate Scan; DP = 310.5 A,SBS-GEn
+2022-11-16,20003,20003,0.7693,scan_rates,3101.0,DP Rate Scan; DP = 321.4 A,SBS-GEn
+2022-11-16,20004,20004,0.7693,test_hv,3102.0,finalized HV settings; final test run,SBS-GEn
+2022-11-16,20005,20005,0.7693,beam_pol,3103.0,HWP IN,SBS-GEn
+2022-11-16,20006,20006,0.7693,beam_pol,3103.0,HWP IN,SBS-GEn
+2022-11-16,20007,20007,0.7693,junk,,junk,
+2022-11-16,20008,20008,0.7693,beam_pol,3103.0,HWP IN,SBS-GEn
+2022-11-16,20009,20009,0.7693,beam_pol_sys,3104.0,HWP OUT; induced charge asym,SBS-GEn
+2022-11-16,20010,20010,0.7693,beam_pol_sys,3104.0,HWP OUT; induced charge asym,SBS-GEn
+2022-11-16,20011,20011,0.7693,beam_pol_sys,3104.0,HWP OUT; induced charge asym,SBS-GEn
+2022-11-16,20012,20012,0.7693,false_asym,3105.0,HWP OUT; Cu foil,SBS-GEn
+2022-11-16,20013,20013,0.7693,false_asym,3105.0,HWP OUT; Cu foil,SBS-GEn
+2022-11-16,20014,20014,0.7693,beam_pol,3106.0,HWP OUT,SBS-GEn
+2022-11-16,20015,20015,0.7693,beam_pol,3106.0,HWP OUT,SBS-GEn

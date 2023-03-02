@@ -30,6 +30,8 @@
 #include<sstream>
 #include<fstream>
 #include<bitset>
+#include<chrono>
+#include<ctime>
 
 Bool_t isnonnumber(char c){
   return !(c >= '0' && c <= '9');
@@ -41,7 +43,7 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   //ANALYSIS PARAMETERS
   Bool_t         writetopdf = false;           //SAVE RESULTS ALSO IN PDF
   Bool_t         writetosql = true;            //WRITE RESULTS TO SQL DATABASE
-  Bool_t         printascii = false;            //PRINT THE STACKS TO ASCII FILE FOR VISUAL INSPECTION
+  Bool_t         printascii = true;            //PRINT THE STACKS TO ASCII FILE FOR VISUAL INSPECTION
   const Int_t    heln       = HELN;            //QUARTET(4) OCTET(8)
   const Int_t    stksz      = HELN*10+1;       //STACK SIZE 10 CYCLES
 
@@ -54,12 +56,12 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   const Double_t deadtimetau= TAU;             //DEADTIME 0.00157 LOSS PER KHZ SINGLES RATE - UNITS OF SECONDS
 
 
-  cout << "molana_anaysis.C() ==> Deadtime tau received: " << deadtimetau << endl;
+  cout << "molana_prompt_anaysis.C() ==> Deadtime tau received: " << deadtimetau << endl;
 
   const Double_t euler      = 2.71828182845904;//POOR JACOB BERNOULLI
 
-  cout << "molana_anaysis.C() ==> Analyzing power set is: " << anpow << endl;
-  cout << "molana_anaysis.C() ==> Charge pedestal set is: " << bcmped << endl;
+  cout << "molana_prompt_anaysis.C() ==> Analyzing power set is: " << anpow << endl;
+  cout << "molana_prompt_anaysis.C() ==> Charge pedestal set is: " << bcmped << endl;
 
   Int_t          skippatts  = 1;               //HOW MANY PATTERNS TO SKIP AFTER BAD PATTERN PLUS ONE [i.e. 2 WILL SKIP 1 PATTERN]
 
@@ -148,10 +150,10 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   sfile=FILE;
   cout << "gSystem->AccessPathName( " << sfile << " ): " << gSystem->AccessPathName( sfile ) << endl;
   if( (gSystem->AccessPathName( sfile )) ){  // RETURNS: FALSE IF ONE CAN ACCESS FILE, TRUE IF YOU CAN'T 
-    cout << "molana_anaysis.C() ==> ROOT increments file not found" << endl;
+    cout << "molana_prompt_anaysis.C() ==> ROOT increments file not found" << endl;
     exit(2);
   } else {
-    cout << "molana_anaysis.C() ==> ROOT increments file found" << endl;
+    cout << "molana_prompt_anaysis.C() ==> ROOT increments file found" << endl;
   }
   TFile * fin = new TFile( sfile );
   TTree * T = nullptr;
@@ -508,7 +510,7 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   Double_t bcmsums[2] = { 0 , 0 }; //BCM SUMS FOR EACH CYCLE [H0,H1]
 
   Double_t expclock = 0;           //EXPECTED CLOCK TIME WINDOW
-  expclock = ( 1./ freq ) * 97000 ;//100KHz CLOCK ASSUMING 3% DEADTIME, IF 240Hz DO 2% DEADTIME MAYBE(?)
+  expclock = ( 1./ freq ) * 100000;//100KHz CLOCK ASSUMING 3% DEADTIME, IF 240Hz DO 2% DEADTIME MAYBE(?)
 
   Int_t rateplotcntr = 0;
 
@@ -564,11 +566,17 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
     nbytes += nb;
 
     if(printascii){
+
+      char time_buf[80];
+      std::time_t temp = unixtime;
+      struct tm *stamp = localtime(&temp);
+      strftime(time_buf, sizeof(time_buf), "%Y/%m/%d %H:%M:%S %Z", stamp);
+
       if(entry%25==0){
-        output2 << std::setw(6) << " ENTRY  " << std::setw(6) << "TRGPAT  " << std::setw(6) << "TRGHEL  " << std::setw(6) << "CLKHEL  " << std::setw(6) << "  COIN  " << std::setw(6) << " ACCID  " << std::setw(6) << "   BCM  " << endl;
-        output2 << std::setw(6) << entry << "  " << std::setw(6) << trighelpatt << "  " << std::setw(6) << trighelvalue << "  " << std::setw(6) << clockheltrig << "  " << std::setw(6) << coinc1 << "  " << std::setw(6) << accid1 << "  " << std::setw(6) << bcm << endl;
+        output2 << std::setw(6) << " ENTRY  " << std::setw(6) << "TRGPAT  " << std::setw(6) << "TRGHEL  " << std::setw(6) << "CLKHEL  " << std::setw(6) << "  COIN  " << std::setw(6) << " ACCID  " << std::setw(6) << "   BCM  " <<  "                  CLOCK" << endl;
+        output2 << std::setw(6) << entry << "  " << std::setw(6) << trighelpatt << "  " << std::setw(6) << trighelvalue << "  " << std::setw(6) << clockheltrig << "  " << std::setw(6) << coinc1 << "  " << std::setw(6) << accid1 << "  " << std::setw(6) << bcm << "  " << time_buf << endl;
       } else {
-        output2 << std::setw(6) << entry << "  " << std::setw(6) << trighelpatt << "  " << std::setw(6) << trighelvalue << "  " << std::setw(6) << clockheltrig << "  " << std::setw(6) << coinc1 << "  " << std::setw(6) << accid1 << "  " << std::setw(6) << bcm << endl;
+        output2 << std::setw(6) << entry << "  " << std::setw(6) << trighelpatt << "  " << std::setw(6) << trighelvalue << "  " << std::setw(6) << clockheltrig << "  " << std::setw(6) << coinc1 << "  " << std::setw(6) << accid1 << "  " << std::setw(6) << bcm << "  " << time_buf << endl;
       }
     }
 
@@ -795,6 +803,7 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
       if(printascii) output << "[" << entry << "] ERROR Helicty Mismatch" << endl;
     }
 
+/*
     if( clocktimer < (expclock*0.95) || clocktimer > (expclock*1.05) ){//IS CLOCK INCREMENT ACCEPTABLE?
       goodhelpatt = -1*skippatt;
       errcnts[11]++;
@@ -803,6 +812,8 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
       //cout << "Error code recorded: " << errorcode_stk[errorindex] << endl;
       if(printascii) output << "[" << entry << "] ERROR Clock Discrepency" << endl;
     }
+*/
+
     if( bcm < 0 ){                            //NEGATIVE INCREMENT SIGNIFIES A SCALAR PROBLEM
       goodhelpatt = -1*skippatt;
       errcnts[6]++;
@@ -1205,13 +1216,15 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
     //////////////////////////////////////////////////////////  ⠂⠂⠂⠂⠂◘⠨⠨⠨⠨⠨⠨⠨⠨
     // WRITE DATA STATS TO SQL DATABASE ON START ... THIS WAY RUN DATA IS INSERTED EVEN IF DATA IS BAD
     if(writetosql){
-      cout << "molana_anaysis.C() ==> Writing prompt stats to " << db_host << "." << endl;
+      cout << "molana_prompt_anaysis.C() ==> Writing prompt stats to " << db_host << "." << endl;
       TSQLServer * ServerEnd = TSQLServer::Connect(db_host,db_user,db_pass);
       TString queryEnd = "";
       queryEnd.Form("replace into moller_run (id_run,run_leftrate,run_rightrate,run_coinrate,run_accrate,run_bcm,run_clock,run_asym,run_asymerr,run_anpow,run_ptarg,run_pol,run_polerr,run_qasym,run_qasymerr) values (%d,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f)",RUNN,0,0,0,0,0,0,0.,0.,0.,0.,0.,0.,0.,0.);
       TSQLResult * resultEnd = ServerEnd->Query(queryEnd.Data());
       ServerEnd->Close();
     }
+
+    cout << "(ERROR) molana_prompt_analysis.C : Exiting due to zero histogram/graph entries..." << endl;
 
     exit(3);
 
@@ -1242,7 +1255,7 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
 
   }
 
-  cout << "molana_anaysis.C() ==> Finished analyzing increments file and wrote 'patterns' ROOT file." << endl;
+  cout << "molana_prompt_anaysis.C() ==> Finished analyzing increments file and wrote 'patterns' ROOT file." << endl;
 
   //////////////////////////////////////////////////////////  ⠂⠂⠂⠂⠂◘⠨⠨⠨⠨⠨⠨⠨⠨
   //FITTING AND PLOTTING
@@ -1445,7 +1458,7 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   //////////////////////////////////////////////////////////  ⠂⠂⠂⠂⠂◘⠨⠨⠨⠨⠨⠨⠨⠨
   //SAVE TO PDF - 'str_savefrontpage' FIRST PAGE, 'str_saveinnerpage' FOR MIDDLE PAGES, 'str_savefinalpage' FOR LAST PAGE
   if(writetopdf){
-    cout << "molana_anaysis.C() ==> Saving plots in PDF format." << endl;
+    cout << "molana_prompt_anaysis.C() ==> Saving plots in PDF format." << endl;
     TString str_savefrontpage("");
     str_savefrontpage.Form("analysis_%i.pdf(",RUNN);
     TString str_saveinnerpage("");
@@ -1469,7 +1482,7 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
 
   //////////////////////////////////////////////////////////  ⠂⠂⠂⠂⠂◘⠨⠨⠨⠨⠨⠨⠨⠨
   //SAVE TO PNG -- WILL DISPLAY ON WEB IN NUMERICAL ORDER OF FIRST TWO DIGITS - SAVE ACCORDINGLY
-  cout << "molana_anaysis.C() ==> Saving plots to PNG images." << endl;
+  cout << "molana_prompt_anaysis.C() ==> Saving plots to PNG images." << endl;
   c_scalersums->SaveAs( Form( "00_pattern_analysis_%i_scalers_sum_graphs.png", RUNN) );
   c_increment1->SaveAs( Form( "01_pattern_analysis_%i_increments1_histos.png", RUNN) );
   c_increment2->SaveAs( Form( "02_pattern_analysis_%i_increments2_histos.png", RUNN) );
@@ -1492,7 +1505,7 @@ Int_t molana_prompt_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t AN
   //////////////////////////////////////////////////////////  ⠂⠂⠂⠂⠂◘⠨⠨⠨⠨⠨⠨⠨⠨
   // WRITE DATA STATS TO SQL DATABASE AT END
   if(writetosql){
-    cout << "molana_anaysis.C() ==> Writing prompt stats to " << db_host << "." << endl;
+    cout << "molana_prompt_anaysis.C() ==> Writing prompt stats to " << db_host << "." << endl;
     TSQLServer * ServerEnd = TSQLServer::Connect(db_host,db_user,db_pass);
     TString queryEnd = "";
     queryEnd.Form("replace into moller_run (id_run,run_leftrate,run_rightrate,run_coinrate,run_accrate,run_bcm,run_qpedused,run_clock,run_asym,run_asymerr,run_anpow,run_ptarg,run_pol,run_polerr,run_qasym,run_qasymerr,run_deadtimetau) values (%d,%d,%d,%d,%d,%d,%f,%d,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f)",RUNN,lrat,rrat,crat,arat,qrat,bcmped,clrt,aavg,aerr,anpow,ptar,pavg,perr,qamn,qaer,deadtimetau);
