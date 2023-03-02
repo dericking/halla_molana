@@ -70,6 +70,8 @@ Bleedthough results will be written to the database of prompt analysis results.
 | -c | --comment  |  TODO: Will insert small comment into the database for the runs being analyzed. This will most likely be a VARCHAR(48) and part of cfg file. Should be run as --comment='short comment with no commas'. |
 |  | --batchstart    |  Sets BATCH=true and assigns a batch start number. Start number must be smaller than end number. Failure to enter both --batchstart and --batchend will result in an exit. |
 |  | --batchend      |  Sets BATCH=true and assigns a batch start number. Start number must be smaller than end number. Failure to enter both --batchstart and --batchend will result in an exit. |
+|  | --ledmode      |  Use this flag if DAQ was run in LED mode. Creates increments file and then terminates the rest of the analysis. |
+|  | --pulmode      | Use this flaf if DAQ was run in LED pulser mode. Creates increments and then terminates. |
 | -h | --help     |  Prints the help. |
 
 ## Using molana_increments.C()
