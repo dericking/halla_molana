@@ -31,28 +31,32 @@ rm tempfile
 echo "End Time Read #2: ${SET_RUN_END}"
 #####################################################################
 
-#if [[ $ID_SET_RUN -gt 20157  ]]
-#then
+#CONVERT TO FORMAT THAT SQL LIKES
+read dayname datnum month clock zone year <<< ${SET_RUN_START}
+TEMP_RUN_START=$(echo "$dayname $month $datnum $clock $zone $year")
+echo "Corrected TEMP_RUN_START: ${TEMP_RUN_START}"
+TEMP_RUN_START=$(date --date="$(printf "${SET_RUN_START}")" +"%Y-%m-%d %H:%M:%S")
+if [[ -z "$TEMP_RUN_START" ]]; then TEMP_RUN_START=null; fi;
+read dayname datnum month clock zone year <<< ${SET_RUN_END}
+TEMP_RUN_END=$(echo "$dayname $month $datnum $clock $zone $year")
+echo "Corrected TEMP_RUN_END: ${TEMP_RUN_END}"
+TEMP_RUN_END=$(date --date="$(printf "${SET_RUN_END}")" +"%Y-%m-%d %H:%M:%S")
+if [[ -z "$TEMP_RUN_END" ]]; then TEMP_RUN_END=null; fi;
+
+#IF FIRST DATE FROM SETTINGS FILE NOT LIKED
+if [ "$TEMP_RUN_START" == "null" ] && [ "$TEMP_RUN_END" == "null" ]; then
+  echo "(populate_setttings_in_molpol_db.sh) >>> Attempting second date format...";
   #CONVERT TO FORMAT THAT SQL LIKES
-  read dayname datnum month clock zone year <<< ${SET_RUN_START}
-  SET_RUN_START=$(echo "$dayname $month $datnum $clock $zone $year")
-  echo "Corrected SET_RUN_START: ${SET_RUN_START}"
-  SET_RUN_START=$(date --date="$(printf "${SET_RUN_START}")" +"%Y-%m-%d %H:%M:%S")
-  if [[ -z "$SET_RUN_START" ]]; then SET_RUN_START=null; fi;
-  read dayname datnum month clock zone year <<< ${SET_RUN_END}
-  SET_RUN_END=$(echo "$dayname $month $datnum $clock $zone $year")
-  echo "Corrected SET_RUN_END: ${SET_RUN_END}"
-  SET_RUN_END=$(date --date="$(printf "${SET_RUN_END}")" +"%Y-%m-%d %H:%M:%S")
-  if [[ -z "$SET_RUN_END" ]]; then SET_RUN_END=null; fi;
-#else 
-#  #CONVERT TO FORMAT THAT SQL LIKES
-#  read dayname month datnum clock zone year <<< ${SET_RUN_START}
-#  SET_RUN_START=$(date --date="$(printf "${SET_RUN_START}")" +"%Y-%m-%d %H:%M:%S")
-#  if [[ -z "$SET_RUN_START" ]]; then SET_RUN_START=null; fi;
-#  read dayname month datnum clock zone year <<< ${SET_RUN_END}
-#  SET_RUN_END=$(date --date="$(printf "${SET_RUN_END}")" +"%Y-%m-%d %H:%M:%S")
-#  if [[ -z "$SET_RUN_END" ]]; then SET_RUN_END=null; fi;
-#fi
+  read dayname month datnum clock zone year <<< ${SET_RUN_START}
+  TEMP_RUN_START=$(date --date="$(printf "${SET_RUN_START}")" +"%Y-%m-%d %H:%M:%S")
+  if [[ -z "$TEMP_RUN_START" ]]; then TEMP_RUN_START=null; fi;
+  read dayname month datnum clock zone year <<< ${SET_RUN_END}
+  TEMP_RUN_END=$(date --date="$(printf "${TEMP_RUN_END}")" +"%Y-%m-%d %H:%M:%S")
+  if [[ -z "$TEMP_RUN_END" ]]; then TEMP_RUN_END=null; fi;
+fi
+
+SET_RUN_START=${TEMP_RUN_START}
+SET_RUN_END=${TEMP_RUN_END}
 
 #WE CAN CALCULATE THIS ONE
 START_TIMESTAMP=$(date --date="$SET_RUN_START" +"%s")
