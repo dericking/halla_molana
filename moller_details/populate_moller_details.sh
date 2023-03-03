@@ -68,7 +68,7 @@ experiment = $EXPERIMENT;"
 
     echo -e "${DB_COMMAND} \n";
 
-    mysql -h halladb --user="hamolpol_admin" --password="5PHKFyrstvy3hDXp" --database="hamolpol" -e "${DB_COMMAND}"
+    mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" -e "${DB_COMMAND}"
     done
 
   ## ENDS THE WHILE LOOP
